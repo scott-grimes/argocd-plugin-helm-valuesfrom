@@ -1,0 +1,62 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: argocd-repo-server
+spec:
+  template:
+    spec:
+      containers:
+        - name: helm-valuesfrom-plugin
+          command: [/var/run/argocd/argocd-cmp-server]
+          args: [--loglevel, debug]
+          image: alpine/k8s:1.23.17
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 999
+          volumeMounts:
+            - mountPath: /var/run/argocd
+              name: var-files
+            - mountPath: /home/argocd/cmp-server/plugins
+              name: plugins
+            - mountPath: /home/argocd/cmp-server/config/plugin.yaml
+              subPath: plugin.yaml
+              name: helm-valuesfrom-plugin
+            - mountPath: /var/run/argocd/helm-valuesfrom/generate.sh
+              subPath: generate.sh
+              name: helm-valuesfrom-plugin
+            - mountPath: /var/run/argocd/helm-valuesfrom/get-parameters.sh
+              subPath: get-parameters.sh
+              name: helm-valuesfrom-plugin
+            - mountPath: /tmp
+              name: cmp-tmp
+            - mountPath: /var/run/secrets/kubernetes.io/serviceaccount
+              name: helm-valuesfrom-kube-api-access
+              readOnly: true
+            - mountPath: /.kube
+              name: kubeconfig
+      volumes:
+        - name: helm-valuesfrom-plugin
+          configMap:
+            name: helm-valuesfrom-plugin
+        - emptyDir: {}
+          name: cmp-tmp
+        - emptyDir: {}
+          name: kubeconfig
+        - name: helm-valuesfrom-kube-api-access
+          projected:
+            defaultMode: 420
+            sources:
+              - serviceAccountToken:
+                  expirationSeconds: 3607
+                  path: token
+              - configMap:
+                  items:
+                  - key: ca.crt
+                    path: ca.crt
+                  name: kube-root-ca.crt
+              - downwardAPI:
+                  items:
+                  - fieldRef:
+                      apiVersion: v1
+                      fieldPath: metadata.namespace
+                    path: namespace

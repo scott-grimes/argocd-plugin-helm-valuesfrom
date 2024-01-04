@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ConfigManagementPlugin
+metadata:
+  name: helm-valuesfrom
+spec:
+  generate:
+    command: [sh, /var/run/argocd/helm-valuesfrom/generate.sh]
+  parameters:
+    static:
+      - name: valuesFrom
+        title: valuesFrom
+        collectionType: array
+        # map:
+        #   kind: secret
+        #   name: my-secret
+        #   valuesKey: values.yaml
+    dynamic:
+      command: [sh, /var/run/argocd/helm-valuesfrom/get-parameters.sh]

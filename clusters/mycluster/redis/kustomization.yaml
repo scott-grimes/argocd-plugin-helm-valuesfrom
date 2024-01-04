@@ -1,0 +1,14 @@
+resources:
+  - redis.yaml
+generatorOptions:
+  disableNameSuffixHash: true
+  
+configMapGenerator:
+  - name: redis-values
+    files:
+      - values.yaml
+
+secretGenerator:
+- name: redis-values
+  files:
+    - values.yaml=values.enc.yaml

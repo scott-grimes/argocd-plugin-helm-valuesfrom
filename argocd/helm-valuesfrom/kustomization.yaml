@@ -1,0 +1,16 @@
+resources:
+  - https://raw.githubusercontent.com/argoproj/argo-cd/v2.6.6/manifests/install.yaml
+  - argocd-repo-server-sa.yaml
+
+configMapGenerator:
+  - name: helm-valuesfrom-plugin
+    files:
+      - plugin.yaml
+      - generate.sh
+      - get-parameters.sh
+
+generatorOptions:
+  disableNameSuffixHash: true
+
+patches:
+  - path: argocd-repo-server.yaml
